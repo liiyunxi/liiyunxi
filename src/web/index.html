@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobHunter Pro - 智能简历投递助手</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: #1a2332;
+      --bg-card-hover: #222d42;
+      --accent-primary: #00d4aa;
+      --accent-secondary: #6366f1;
+      --accent-tertiary: #f59e0b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: #2d3a4d;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --gradient-primary: linear-gradient(135deg, #00d4aa 0%, #6366f1 100%);
+      --gradient-bg: linear-gradient(180deg, #0a0e17 0%, #111827 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gradient-bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    header {
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 0;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(0, 212, 170, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .hero h1 span {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .search-box {
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      background: var(--bg-card);
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.1);
+    }
+
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 16px 20px;
+      font-size: 16px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-box button {
+      background: var(--gradient-primary);
+      border: none;
+      padding: 16px 32px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--bg-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
+    }
+
+    .search-box button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .filter-chip.active {
+      background: rgba(0, 212, 170, 0.1);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .dashboard {
+      padding: 40px 0 80px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .kpi-card:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-icon.green { background: rgba(16, 185, 129, 0.15); }
+    .kpi-icon.blue { background: rgba(99, 102, 241, 0.15); }
+    .kpi-icon.orange { background: rgba(245, 158, 11, 0.15); }
+    .kpi-icon.purple { background: rgba(139, 92, 246, 0.15); }
+
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .kpi-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .kpi-trend {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .kpi-trend.up {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .kpi-trend.down {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--error);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    .jobs-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .job-item {
+      display: grid;
+      grid-template-columns: 1fr 120px 100px 100px 80px;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .job-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .job-info h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .job-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .job-salary {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .job-status {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .job-status.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .job-status.viewed { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .job-status.interview { background: rgba(99, 102, 241, 0.15); color: var(--accent-secondary); }
+    .job-status.rejected { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    .job-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .logs-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .log-list {
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .log-message { flex: 1; }
+
+    .log-entry.info .log-message { color: var(--text-secondary); }
+    .log-entry.success .log-message { color: var(--success); }
+    .log-entry.warning .log-message { color: var(--warning); }
+    .log-entry.error .log-message { color: var(--error); }
+
+    .progress-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      display: none;
+    }
+
+    .progress-section.active {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar-container {
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--gradient-primary);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .demo-banner {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(0, 212, 170, 0.2));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .demo-badge {
+      background: var(--accent-secondary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .demo-text {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .job-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .search-box {
+        flex-direction: column;
+      }
+      .search-box button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.1s; }
+    .stagger-2 { animation-delay: 0.2s; }
+    .stagger-3 { animation-delay: 0.3s; }
+    .stagger-4 { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <div class="logo">
+        <div class="logo-icon">🚀</div>
+        <span class="logo-text">JobHunter Pro</span>
+      </div>
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        <span>系统就绪</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>智能简历<span>投递助手</span></h1>
+      <p>自动化求职流程，精准匹配职位，数据驱动决策。让找工作更高效。</p>
+      
+      <div class="search-box">
+        <input type="text" id="keywordInput" placeholder="输入职位关键词，如：前端工程师、Java开发、产品经理..." />
+        <button id="startBtn">
+          <span>🚀</span>
+          <span>开始演示</span>
+        </button>
+      </div>
+
+      <div class="filters">
+        <span class="filter-chip active" data-filter="all">全部</span>
+        <span class="filter-chip" data-filter="frontend">前端开发</span>
+        <span class="filter-chip" data-filter="backend">后端开发</span>
+        <span class="filter-chip" data-filter="fullstack">全栈</span>
+        <span class="filter-chip" data-filter="mobile">移动端</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard">
+    <div class="container">
+      <div class="demo-banner">
+        <span class="demo-badge">演示模式</span>
+        <span class="demo-text">以下数据为模拟示例，用于展示系统功能。实际使用时请遵守相关平台服务条款。</span>
+      </div>
+
+      <div class="progress-section" id="progressSection">
+        <div class="progress-header">
+          <span class="chart-title">投递进度</span>
+          <span id="progressText">0 / 0</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card fade-in stagger-1">
+          <div class="kpi-icon green">📮</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-label">总投递数</div>
+          <span class="kpi-trend up" id="trendApplied">+0%</span>
+        </div>
+        <div class="kpi-card fade-in stagger-2">
+          <div class="kpi-icon blue">👁️</div>
+          <div class="kpi-value" id="kpiViewed">0%</div>
+          <div class="kpi-label">简历浏览率</div>
+          <span class="kpi-trend up" id="trendResponse">+0%</span>
+        </div>
+        <div class="kpi-card fade-in stagger-3">
+          <div class="kpi-icon orange">🎯</div>
+          <div class="kpi-value" id="kpiInterview">0</div>
+          <div class="kpi-label">面试机会</div>
+        </div>
+        <div class="kpi-card fade-in stagger-4">
+          <div class="kpi-icon purple">💰</div>
+          <div class="kpi-value" id="kpiSalary">0K</div>
+          <div class="kpi-label">平均期望薪资</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">📈 投递趋势</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">💼 热门技能</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="skillChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">🏢 公司分布</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="companyChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">💵 薪资分布</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="salaryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="jobs-section">
+        <div class="section-header">
+          <span class="chart-title">📋 最近投递记录</span>
+          <span class="filter-chip active">最近 7 天</span>
+        </div>
+        <div class="job-list" id="jobList"></div>
+      </div>
+
+      <div class="logs-section">
+        <div class="section-header">
+          <span class="chart-title">📝 实时日志</span>
+          <button class="filter-chip" id="clearLogsBtn">清空</button>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>JobHunter Pro - 仅供学习与演示目的使用 | 请遵守目标网站服务条款</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

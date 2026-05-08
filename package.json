@@ -1,0 +1,41 @@
+{
+  "name": "jobhunter-pro",
+  "version": "1.0.0",
+  "description": "Boss直聘自动投递简历工具 - 智能求职辅助系统",
+  "main": "src/core/engine.js",
+  "type": "module",
+  "bin": {
+    "jobhunter": "src/cli/index.js"
+  },
+  "scripts": {
+    "start": "node src/cli/index.js",
+    "serve": "node src/cli/index.js serve",
+    "search": "node src/cli/index.js search",
+    "apply": "node src/cli/index.js apply",
+    "stats": "node src/cli/index.js stats"
+  },
+  "keywords": [
+    "job",
+    "scraper",
+    "automation",
+    "zhipin",
+    "求职",
+    "简历"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "cheerio": "^1.0.0-rc.12",
+    "axios": "^1.6.5",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
