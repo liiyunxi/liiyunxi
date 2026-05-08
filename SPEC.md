@@ -50,21 +50,26 @@
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐    ┌─────────────────┐    ┌──────────────┐ │
 │  │   CLI Client    │    │  Web Interface  │    │   Scheduler  │ │
-│  │  (命令行工具)    │    │   (网页演示)    │    │   (定时任务)  │ │
+│  │  (命令行工具)   │    │  (网页界面)     │    │   (定时任务) │ │
 │  └────────┬────────┘    └────────┬────────┘    └──────┬───────┘ │
-│           │                        │                     │        │
-│           └────────────────────────┼─────────────────────┘        │
-│                                    │                              │
-│                          ┌─────────▼─────────┐                    │
-│                          │   Core Engine     │                    │
-│                          │  (核心引擎)        │                    │
-│                          └─────────┬─────────┘                    │
-│                                    │                              │
-│  ┌─────────────────────────────────┼─────────────────────────────┐│
-│  │                    Module Layer                    │          │
+│           │                      │                     │        │
+│           └──────────────────────┼─────────────────────┘        │
+│                                  │                               │
+│                    ┌─────────────▼─────────────┐                │
+│                    │    Express Server          │                │
+│                    │  (REST API + WebSocket)   │                │
+│                    └─────────────┬─────────────┘                │
+│                                  │                               │
+│                          ┌───────▼───────┐                      │
+│                          │ Core Engine   │                      │
+│                          │  (核心引擎)   │                      │
+│                          └───────┬───────┘                      │
+│                                  │                               │
+│  ┌───────────────────────────────┼───────────────────────────────┐│
+│  │                    Module Layer                    │           ││
 │  ├───────────────┬───────────────┬───────────────┬───────────────┤│
-│  │ JobScraper    │ AutoApplier   │ ResumeManager │ DataAnalytics ││
-│  │ (职位爬虫)    │ (自动投递)    │ (简历管理)    │ (数据分析)   ││
+│  │ BrowserManager│ JobScraper    │ AutoApplier   │ DataAnalytics ││
+│  │ (浏览器管理) │ (职位爬虫)    │ (自动投递)   │ (数据分析)   ││
 │  └───────────────┴───────────────┴───────────────┴───────────────┘│
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -78,22 +83,31 @@ interface EngineConfig {
   requestThrottle: number;       // 请求节流(ms)
   retryPolicy: RetryPolicy;      // 重试策略
   proxyRotation: ProxyPool;      // 代理池轮换
+  autoLogin: boolean;            // 自动登录
+  headless: boolean;            // 无头模式
 }
 ```
 
-#### 3.2 JobScraper (职位爬虫)
+#### 3.2 BrowserManager (浏览器管理)
+- 使用 Puppeteer 控制无头浏览器
+- 自动登录 Boss 直聘账号
+- 自动保存和加载 Cookie
+- 支持手动登录和自动登录两种模式
+- Cookie 有效期 24 小时自动检测
+
+#### 3.3 JobScraper (职位爬虫)
 - 关键词搜索职位列表
 - 解析职位详情（薪资、技能要求、福利）
 - 过滤重复职位
 - 支持分页爬取
 
-#### 3.3 AutoApplier (自动投递)
+#### 3.4 AutoApplier (自动投递)
 - 模拟用户登录态
 - 构建投递请求
 - 投递频率控制（避免封号）
 - 投递结果记录
 
-#### 3.4 ResumeManager (简历管理)
+#### 3.5 ResumeManager (简历管理)
 - 简历模板管理
 - 简历与职位匹配度分析
 - 一键切换简历
@@ -258,15 +272,15 @@ HTML响应 → Cheerio解析 → 数据清洗 → 格式验证 → 存储入库
 
 ### 后端
 - **运行时**：Node.js 18+
-- **框架**：Express.js / Fastify
+- **框架**：Express.js
 - **爬虫**：Puppeteer (无头浏览器) + 原生 HTTP 请求
 - **数据**：SQLite (本地轻量存储)
-- **实时**：Socket.IO / WebSocket
+- **实时**：WebSocket
 
 ### 前端
-- **框架**：原生 HTML + CSS + JavaScript (零依赖演示版)
+- **框架**：原生 HTML + CSS + JavaScript
 - **图表**：Chart.js (轻量级可视化)
-- **图标**：Lucide Icons (SVG图标库)
+- **实时通信**：WebSocket
 
 ### CLI工具
 - **框架**：Commander.js
@@ -279,19 +293,23 @@ jobhunter-pro/
 ├── src/
 │   ├── core/
 │   │   ├── engine.js           # 核心引擎
-│   │   ├── scraper.js         # 爬虫模块
+│   │   ├── browser.js          # 浏览器自动化 (Puppeteer)
+│   │   ├── scraper.js          # 爬虫模块
 │   │   ├── applier.js         # 投递模块
-│   │   └── analytics.js       # 分析模块
+│   │   └── analytics.js        # 分析模块
 │   ├── cli/
-│   │   └── index.js           # CLI入口
+│   │   └── index.js            # CLI入口
 │   ├── web/
-│   │   ├── index.html         # Web演示页
-│   │   ├── styles.css         # 样式表
-│   │   └── app.js             # 前端逻辑
+│   │   ├── index.html          # Web界面（登录+投递控制）
+│   │   └── app.js              # 前端逻辑
+│   ├── server.js               # Express + WebSocket 服务器
 │   └── data/
-│       └── demo-data.js       # 演示数据
+│       └── demo-data.js        # 演示数据
+├── data/
+│   └── cookies.json            # 登录Cookie存储
 ├── package.json
 ├── SPEC.md
+├── USAGE.md                    # 使用指南
 └── README.md
 ```
 
@@ -316,11 +334,17 @@ jobhunter-pro/
 # 安装依赖
 npm install
 
-# 搜索职位
-node src/cli/index.js search -k "前端工程师" -c "北京" -p 20-40
+# 登录 Boss 直聘（自动保存 Cookie）
+npm run login
 
-# 批量投递
-node src/cli/index.js apply -k "前端工程师" --limit 50
+# 搜索职位（默认关键词：Java AI应用开发）
+node src/cli/index.js search -k "Java AI应用开发" -c "北京" -p 20-40
+
+# 批量投递（自动检测并刷新过期 Cookie）
+node src/cli/index.js apply -k "Java AI应用开发" -l 20 --auto-login
+
+# 演示模式（无需登录）
+node src/cli/index.js apply --demo -k "Java AI应用开发"
 
 # 查看统计
 node src/cli/index.js stats --range 7d
@@ -330,7 +354,18 @@ node src/cli/index.js serve --port 3000
 ```
 
 ### Web界面使用
-1. 打开 `src/web/index.html`
-2. 输入搜索关键词
-3. 点击"开始演示"
-4. 查看实时数据可视化
+```bash
+# 启动 Web 服务器
+npm run web
+# 或
+node src/server.js
+
+# 访问 http://localhost:3000
+```
+
+#### Web界面功能
+1. **Boss 直聘登录** - 点击"登录 Boss"按钮，输入手机号和密码
+2. **设置搜索条件** - 输入职位关键词、城市、投递数量
+3. **开始投递** - 登录后点击"开始投递"按钮
+4. **实时监控** - 查看投递进度、统计图表、日志记录
+5. **演示模式** - 无需登录，点击"演示模式"体验功能

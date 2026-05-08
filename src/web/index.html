@@ -28,11 +28,7 @@
       --gradient-bg: linear-gradient(180deg, #0a0e17 0%, #111827 100%);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -42,11 +38,7 @@
       overflow-x: hidden;
     }
 
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
 
     header {
       background: rgba(17, 24, 39, 0.8);
@@ -58,43 +50,31 @@
       padding: 16px 0;
     }
 
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .logo { display: flex; align-items: center; gap: 12px; }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       background: var(--gradient-primary);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 20px;
     }
 
     .logo-text {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 20px; font-weight: 700;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .nav-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+
+    .login-status {
+      display: flex; align-items: center; gap: 8px;
       padding: 8px 16px;
       background: var(--bg-card);
       border-radius: 20px;
@@ -102,11 +82,45 @@
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 8px; height: 8px;
       border-radius: 50%;
-      background: var(--accent-primary);
-      animation: pulse 2s infinite;
+    }
+
+    .status-dot.connected { background: var(--success); animation: pulse 2s infinite; }
+    .status-dot.disconnected { background: var(--error); }
+
+    .header-btn {
+      padding: 8px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-btn:hover {
+      border-color: var(--accent-primary);
+      background: rgba(0, 212, 170, 0.1);
+    }
+
+    .header-btn.primary {
+      background: var(--gradient-primary);
+      border: none;
+      color: var(--bg-primary);
+      font-weight: 600;
+    }
+
+    .header-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+    }
+
+    .header-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
 
     @keyframes pulse {
@@ -114,30 +128,17 @@
       50% { opacity: 0.5; transform: scale(1.2); }
     }
 
-    .hero {
-      padding: 80px 0 60px;
-      text-align: center;
-      position: relative;
-    }
+    .hero { padding: 60px 0 40px; text-align: center; position: relative; }
 
     .hero::before {
       content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 400px;
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 300px;
       background: radial-gradient(ellipse at center, rgba(0, 212, 170, 0.15) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    .hero h1 {
-      font-size: 48px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      position: relative;
-    }
+    .hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 12px; position: relative; }
 
     .hero h1 span {
       background: var(--gradient-primary);
@@ -146,105 +147,152 @@
       background-clip: text;
     }
 
-    .hero p {
-      font-size: 18px;
-      color: var(--text-secondary);
-      margin-bottom: 40px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
+    .hero p { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
 
-    .search-box {
-      max-width: 700px;
-      margin: 0 auto;
-      display: flex;
-      gap: 12px;
+    .control-panel {
       background: var(--bg-card);
-      padding: 8px;
-      border-radius: 16px;
       border: 1px solid var(--border);
-      transition: all 0.3s ease;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
     }
 
-    .search-box:focus-within {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.1);
+    .control-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
-    .search-box input {
+    .control-row:last-child { margin-bottom: 0; }
+
+    .input-group {
       flex: 1;
-      background: transparent;
-      border: none;
-      padding: 16px 20px;
-      font-size: 16px;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .input-group input {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
       color: var(--text-primary);
       outline: none;
+      transition: all 0.2s;
     }
 
-    .search-box input::placeholder {
-      color: var(--text-muted);
+    .input-group input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
     }
 
-    .search-box button {
-      background: var(--gradient-primary);
-      border: none;
-      padding: 16px 32px;
+    .input-group input::placeholder { color: var(--text-muted); }
+
+    .action-buttons { display: flex; gap: 12px; align-items: flex-end; }
+
+    .btn {
+      padding: 12px 28px;
       border-radius: 10px;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      color: var(--bg-primary);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s;
+      border: none;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .search-box button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--bg-primary);
     }
 
-    .search-box button:disabled {
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 212, 170, 0.3);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--error);
+      border: 1px solid var(--error);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--accent-primary);
+      background: rgba(0, 212, 170, 0.1);
+    }
+
+    .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      transform: none;
+      transform: none !important;
     }
 
-    .filters {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 20px;
-      flex-wrap: wrap;
-    }
-
-    .filter-chip {
-      padding: 8px 16px;
+    .progress-section {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 13px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 32px;
+      display: none;
     }
 
-    .filter-chip:hover {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
+    .progress-section.active { display: block; }
+
+    .progress-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
     }
 
-    .filter-chip.active {
-      background: rgba(0, 212, 170, 0.1);
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
+    .progress-title { font-size: 15px; font-weight: 600; }
+
+    .progress-meta { font-size: 13px; color: var(--text-secondary); }
+
+    .progress-bar-container {
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
     }
 
-    .dashboard {
-      padding: 40px 0 80px;
+    .progress-bar {
+      height: 100%;
+      background: var(--gradient-primary);
+      border-radius: 4px;
+      transition: width 0.3s ease;
     }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .dashboard { padding: 0 0 60px; }
 
     .kpi-grid {
       display: grid;
@@ -268,29 +316,10 @@
       border-color: var(--accent-primary);
     }
 
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--gradient-primary);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .kpi-card:hover::before {
-      opacity: 1;
-    }
-
     .kpi-icon {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 24px;
       margin-bottom: 16px;
     }
@@ -302,34 +331,11 @@
 
     .kpi-value {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 32px; font-weight: 700;
       margin-bottom: 4px;
     }
 
-    .kpi-label {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    .kpi-trend {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-
-    .kpi-trend.up {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-    }
-
-    .kpi-trend.down {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--error);
-    }
+    .kpi-label { font-size: 14px; color: var(--text-secondary); }
 
     .charts-grid {
       display: grid;
@@ -346,21 +352,13 @@
     }
 
     .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 20px;
     }
 
-    .chart-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
+    .chart-title { font-size: 16px; font-weight: 600; }
 
-    .chart-container {
-      position: relative;
-      height: 280px;
-    }
+    .chart-container { position: relative; height: 280px; }
 
     .jobs-section {
       background: var(--bg-card);
@@ -371,21 +369,15 @@
     }
 
     .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 20px;
     }
 
-    .job-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .job-list { display: flex; flex-direction: column; gap: 12px; }
 
     .job-item {
       display: grid;
-      grid-template-columns: 1fr 120px 100px 100px 80px;
+      grid-template-columns: 1fr 120px 100px 100px;
       gap: 16px;
       padding: 16px;
       background: var(--bg-secondary);
@@ -394,20 +386,10 @@
       transition: all 0.2s ease;
     }
 
-    .job-item:hover {
-      background: var(--bg-card-hover);
-    }
+    .job-item:hover { background: var(--bg-card-hover); }
 
-    .job-info h4 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .job-info p {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
+    .job-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .job-info p { font-size: 13px; color: var(--text-secondary); }
 
     .job-salary {
       font-family: 'JetBrains Mono', monospace;
@@ -427,11 +409,9 @@
     .job-status.viewed { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
     .job-status.interview { background: rgba(99, 102, 241, 0.15); color: var(--accent-secondary); }
     .job-status.rejected { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .job-status.pending { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
 
-    .job-time {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .job-time { font-size: 12px; color: var(--text-muted); }
 
     .logs-section {
       background: var(--bg-card);
@@ -441,110 +421,96 @@
     }
 
     .log-list {
-      max-height: 300px;
+      max-height: 250px;
       overflow-y: auto;
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
     }
 
     .log-entry {
-      display: flex;
-      gap: 12px;
+      display: flex; gap: 12px;
       padding: 8px 0;
       border-bottom: 1px solid var(--border);
     }
 
-    .log-entry:last-child {
-      border-bottom: none;
-    }
-
-    .log-time {
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { color: var(--text-muted); white-space: nowrap; }
     .log-message { flex: 1; }
-
     .log-entry.info .log-message { color: var(--text-secondary); }
     .log-entry.success .log-message { color: var(--success); }
     .log-entry.warning .log-message { color: var(--warning); }
     .log-entry.error .log-message { color: var(--error); }
 
-    .progress-section {
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 32px;
-      display: none;
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      transform: translateY(20px);
+      transition: transform 0.3s;
     }
 
-    .progress-section.active {
-      display: block;
+    .modal-overlay.active .modal {
+      transform: translateY(0);
     }
 
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    .modal h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
     }
 
-    .progress-bar-container {
-      height: 8px;
-      background: var(--bg-secondary);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: var(--gradient-primary);
-      border-radius: 4px;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-
-    .progress-bar::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: shimmer 1.5s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-
-    .demo-banner {
-      background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(0, 212, 170, 0.2));
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 12px;
-      padding: 16px 24px;
-      margin-bottom: 32px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .demo-badge {
-      background: var(--accent-secondary);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .demo-text {
-      flex: 1;
+    .modal p {
       font-size: 14px;
       color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-input {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+      justify-content: center;
     }
 
     footer {
@@ -556,43 +522,18 @@
     }
 
     @media (max-width: 1024px) {
-      .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px) {
-      .hero h1 { font-size: 32px; }
+      .hero h1 { font-size: 28px; }
       .kpi-grid { grid-template-columns: 1fr; }
-      .job-item {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-      .search-box {
-        flex-direction: column;
-      }
-      .search-box button {
-        width: 100%;
-        justify-content: center;
-      }
+      .job-item { grid-template-columns: 1fr; gap: 8px; }
+      .control-row { flex-direction: column; }
+      .action-buttons { flex-direction: column; width: 100%; }
+      .action-buttons .btn { width: 100%; justify-content: center; }
     }
-
-    .fade-in {
-      animation: fadeIn 0.6s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .stagger-1 { animation-delay: 0.1s; }
-    .stagger-2 { animation-delay: 0.2s; }
-    .stagger-3 { animation-delay: 0.3s; }
-    .stagger-4 { animation-delay: 0.4s; }
   </style>
 </head>
 <body>
@@ -602,9 +543,13 @@
         <div class="logo-icon">🚀</div>
         <span class="logo-text">JobHunter Pro</span>
       </div>
-      <div class="nav-status">
-        <span class="status-dot"></span>
-        <span>系统就绪</span>
+      <div class="header-actions">
+        <div class="login-status">
+          <span class="status-dot" id="wsStatus"></span>
+          <span id="loginStatusText">未连接</span>
+        </div>
+        <button class="header-btn" id="loginBtn">登录 Boss</button>
+        <button class="header-btn primary" id="startBtn" disabled>开始投递</button>
       </div>
     </div>
   </header>
@@ -612,37 +557,43 @@
   <section class="hero">
     <div class="container">
       <h1>智能简历<span>投递助手</span></h1>
-      <p>自动化求职流程，精准匹配职位，数据驱动决策。让找工作更高效。</p>
-      
-      <div class="search-box">
-        <input type="text" id="keywordInput" placeholder="输入职位关键词，如：前端工程师、Java开发、产品经理..." />
-        <button id="startBtn">
-          <span>🚀</span>
-          <span>开始演示</span>
-        </button>
-      </div>
+      <p>自动化求职流程，精准匹配职位，数据驱动决策</p>
 
-      <div class="filters">
-        <span class="filter-chip active" data-filter="all">全部</span>
-        <span class="filter-chip" data-filter="frontend">前端开发</span>
-        <span class="filter-chip" data-filter="backend">后端开发</span>
-        <span class="filter-chip" data-filter="fullstack">全栈</span>
-        <span class="filter-chip" data-filter="mobile">移动端</span>
+      <div class="control-panel">
+        <div class="control-row">
+          <div class="input-group">
+            <label>职位关键词</label>
+            <input type="text" id="keywordInput" placeholder="如：Java AI应用开发" value="Java AI应用开发" />
+          </div>
+          <div class="input-group">
+            <label>工作城市</label>
+            <input type="text" id="cityInput" placeholder="如：北京" value="北京" />
+          </div>
+          <div class="input-group">
+            <label>投递数量</label>
+            <input type="number" id="limitInput" placeholder="投递数量" value="20" min="1" max="100" />
+          </div>
+        </div>
+        <div class="control-row">
+          <div class="action-buttons">
+            <button class="btn btn-primary" id="searchJobsBtn">
+              <span>🔍</span>搜索职位
+            </button>
+            <button class="btn btn-secondary" id="demoBtn">
+              <span>📊</span>演示模式
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="dashboard">
     <div class="container">
-      <div class="demo-banner">
-        <span class="demo-badge">演示模式</span>
-        <span class="demo-text">以下数据为模拟示例，用于展示系统功能。实际使用时请遵守相关平台服务条款。</span>
-      </div>
-
       <div class="progress-section" id="progressSection">
         <div class="progress-header">
-          <span class="chart-title">投递进度</span>
-          <span id="progressText">0 / 0</span>
+          <span class="progress-title" id="progressTitle">正在投递...</span>
+          <span class="progress-meta" id="progressMeta">0 / 0</span>
         </div>
         <div class="progress-bar-container">
           <div class="progress-bar" id="progressBar" style="width: 0%"></div>
@@ -650,24 +601,22 @@
       </div>
 
       <div class="kpi-grid">
-        <div class="kpi-card fade-in stagger-1">
+        <div class="kpi-card">
           <div class="kpi-icon green">📮</div>
           <div class="kpi-value" id="kpiTotal">0</div>
           <div class="kpi-label">总投递数</div>
-          <span class="kpi-trend up" id="trendApplied">+0%</span>
         </div>
-        <div class="kpi-card fade-in stagger-2">
+        <div class="kpi-card">
           <div class="kpi-icon blue">👁️</div>
           <div class="kpi-value" id="kpiViewed">0%</div>
           <div class="kpi-label">简历浏览率</div>
-          <span class="kpi-trend up" id="trendResponse">+0%</span>
         </div>
-        <div class="kpi-card fade-in stagger-3">
+        <div class="kpi-card">
           <div class="kpi-icon orange">🎯</div>
           <div class="kpi-value" id="kpiInterview">0</div>
           <div class="kpi-label">面试机会</div>
         </div>
-        <div class="kpi-card fade-in stagger-4">
+        <div class="kpi-card">
           <div class="kpi-icon purple">💰</div>
           <div class="kpi-value" id="kpiSalary">0K</div>
           <div class="kpi-label">平均期望薪资</div>
@@ -714,21 +663,39 @@
 
       <div class="jobs-section">
         <div class="section-header">
-          <span class="chart-title">📋 最近投递记录</span>
-          <span class="filter-chip active">最近 7 天</span>
+          <span class="chart-title">📋 投递记录</span>
         </div>
-        <div class="job-list" id="jobList"></div>
+        <div class="job-list" id="jobList">
+          <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+            暂无投递记录
+          </div>
+        </div>
       </div>
 
       <div class="logs-section">
         <div class="section-header">
           <span class="chart-title">📝 实时日志</span>
-          <button class="filter-chip" id="clearLogsBtn">清空</button>
+          <button class="header-btn" id="clearLogsBtn" style="padding: 4px 12px;">清空</button>
         </div>
         <div class="log-list" id="logList"></div>
       </div>
     </div>
   </section>
+
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal">
+      <h3>登录 Boss 直聘</h3>
+      <p>请输入您的 Boss 直聘账号信息</p>
+      <form class="modal-form" id="loginForm">
+        <input type="tel" class="modal-input" id="phoneInput" placeholder="手机号" maxlength="11" required />
+        <input type="password" class="modal-input" id="passwordInput" placeholder="密码" required />
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelLoginBtn">取消</button>
+          <button type="submit" class="btn btn-primary">登录</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer>
     <div class="container">
@@ -736,6 +703,503 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script>
+    const API_BASE = '';
+    let ws = null;
+    let isLoggedIn = false;
+    let isRunning = false;
+    let applications = [];
+    let charts = {};
+
+    const demoStats = {
+      kpis: {
+        totalApplied: 47,
+        responseRate: 0.723,
+        interviewRate: 0.149,
+        averageSalary: 42500
+      },
+      charts: {
+        applicationTrend: [
+          { label: '1/8', count: 5 },
+          { label: '1/9', count: 8 },
+          { label: '1/10', count: 6 },
+          { label: '1/11', count: 9 },
+          { label: '1/12', count: 7 },
+          { label: '1/13', count: 6 },
+          { label: '1/14', count: 6 }
+        ],
+        skillDemand: [
+          { name: 'React', count: 85 },
+          { name: 'JavaScript', count: 92 },
+          { name: 'Vue', count: 72 },
+          { name: 'TypeScript', count: 68 },
+          { name: 'CSS3', count: 78 },
+          { name: 'Node.js', count: 45 },
+          { name: 'Webpack', count: 35 },
+          { name: '性能优化', count: 42 }
+        ],
+        companyDistribution: [
+          { name: '字节跳动', count: 12 },
+          { name: '阿里巴巴', count: 10 },
+          { name: '腾讯', count: 8 },
+          { name: '美团', count: 7 },
+          { name: '快手', count: 6 },
+          { name: '京东', count: 5 }
+        ],
+        salaryDistribution: [
+          { range: '<10K', count: 5 },
+          { range: '10-15K', count: 12 },
+          { range: '15-20K', count: 25 },
+          { range: '20-25K', count: 35 },
+          { range: '25-30K', count: 28 },
+          { range: '30-40K', count: 32 }
+        ]
+      }
+    };
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      ws.onopen = () => {
+        console.log('[WS] Connected');
+        document.getElementById('wsStatus').className = 'status-dot connected';
+        document.getElementById('loginStatusText').textContent = '已连接';
+        checkLoginStatus();
+      };
+
+      ws.onclose = () => {
+        console.log('[WS] Disconnected');
+        document.getElementById('wsStatus').className = 'status-dot disconnected';
+        document.getElementById('loginStatusText').textContent = '未连接';
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[WS] Error:', error);
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        handleWebSocketMessage(msg);
+      };
+    }
+
+    function handleWebSocketMessage(msg) {
+      switch (msg.type) {
+        case 'progress':
+          updateProgressFromServer(msg.data);
+          break;
+        case 'log':
+          addLog(msg.data.level || 'info', msg.data.message);
+          break;
+        case 'stats':
+          updateKPIsFromServer(msg.data);
+          break;
+      }
+    }
+
+    function updateProgressFromServer(data) {
+      const section = document.getElementById('progressSection');
+      section.classList.add('active');
+
+      const current = data.current || 0;
+      const total = data.total || 1;
+      const percent = (current / total) * 100;
+
+      document.getElementById('progressBar').style.width = percent + '%';
+      document.getElementById('progressMeta').textContent = `${current} / ${total}`;
+
+      if (data.job) {
+        document.getElementById('progressTitle').textContent = `正在投递: ${data.job}`;
+      }
+
+      if (data.status === 'completed' || data.status === 'done') {
+        setTimeout(() => {
+          section.classList.remove('active');
+          isRunning = false;
+          updateStartButton();
+        }, 2000);
+      }
+    }
+
+    function updateKPIsFromServer(stats) {
+      document.getElementById('kpiTotal').textContent = stats.totalApplied || 0;
+      document.getElementById('kpiViewed').textContent = ((stats.responseRate || 0) * 100).toFixed(0) + '%';
+      document.getElementById('kpiInterview').textContent = stats.interviews || 0;
+      document.getElementById('kpiSalary').textContent = ((stats.averageSalary || 0) / 1000).toFixed(0) + 'K';
+    }
+
+    async function checkLoginStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/login/status`);
+        const data = await res.json();
+        updateLoginUI(data.loggedIn);
+      } catch (e) {
+        updateLoginUI(false);
+      }
+    }
+
+    function updateLoginUI(loggedIn) {
+      isLoggedIn = loggedIn;
+      const loginBtn = document.getElementById('loginBtn');
+      const startBtn = document.getElementById('startBtn');
+      const statusText = document.getElementById('loginStatusText');
+
+      if (loggedIn) {
+        loginBtn.textContent = '已登录 ✓';
+        loginBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+        loginBtn.style.borderColor = 'var(--success)';
+        loginBtn.style.color = 'var(--success)';
+        startBtn.disabled = false;
+        statusText.textContent = '已登录';
+      } else {
+        loginBtn.textContent = '登录 Boss';
+        loginBtn.style.background = '';
+        loginBtn.style.borderColor = '';
+        loginBtn.style.color = '';
+        startBtn.disabled = true;
+        statusText.textContent = '未登录';
+      }
+    }
+
+    async function handleLogin(phone, password) {
+      try {
+        addLog('info', `正在登录账号: ${phone.slice(0, 3)}****`);
+
+        const res = await fetch(`${API_BASE}/api/login/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          addLog('success', '登录成功！Cookie 已保存');
+
+          await fetch(`${API_BASE}/api/login/save`, { method: 'POST' });
+          updateLoginUI(true);
+        } else {
+          addLog('error', `登录失败: ${data.error}`);
+        }
+      } catch (e) {
+        addLog('error', `登录请求失败: ${e.message}`);
+      }
+    }
+
+    async function startApply() {
+      const keyword = document.getElementById('keywordInput').value.trim() || 'Java AI应用开发';
+      const city = document.getElementById('cityInput').value.trim() || '北京';
+      const limit = parseInt(document.getElementById('limitInput').value) || 20;
+
+      try {
+        addLog('info', `开始投递: ${keyword} @ ${city}`);
+
+        const res = await fetch(`${API_BASE}/api/apply/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, city, limit })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          isRunning = true;
+          updateStartButton();
+          addLog('success', '投递任务已启动');
+        } else if (data.needLogin) {
+          addLog('warning', '请先登录 Boss 直聘');
+          document.getElementById('loginModal').classList.add('active');
+        } else {
+          addLog('error', `投递失败: ${data.error}`);
+        }
+      } catch (e) {
+        addLog('error', `请求失败: ${e.message}`);
+      }
+    }
+
+    async function stopApply() {
+      try {
+        await fetch(`${API_BASE}/api/apply/stop`, { method: 'POST' });
+        isRunning = false;
+        updateStartButton();
+        addLog('warning', '投递已停止');
+        document.getElementById('progressSection').classList.remove('active');
+      } catch (e) {
+        addLog('error', `停止失败: ${e.message}`);
+      }
+    }
+
+    function updateStartButton() {
+      const startBtn = document.getElementById('startBtn');
+      if (isRunning) {
+        startBtn.innerHTML = '<span>⏹</span>停止投递';
+        startBtn.onclick = stopApply;
+      } else {
+        startBtn.innerHTML = '<span>🚀</span>开始投递';
+        startBtn.onclick = startApply;
+      }
+    }
+
+    function addLog(level, message) {
+      const container = document.getElementById('logList');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${level}`;
+
+      const time = new Date().toLocaleTimeString('zh-CN', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      entry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-message">${message}</span>
+      `;
+
+      container.insertBefore(entry, container.firstChild);
+
+      while (container.children.length > 100) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function initCharts() {
+      const defaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      };
+
+      charts.trend = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            borderColor: '#00d4aa',
+            backgroundColor: 'rgba(0, 212, 170, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          ...defaults,
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+
+      charts.skill = new Chart(document.getElementById('skillChart'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: ['#00d4aa', '#6366f1', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+          }]
+        },
+        options: { ...defaults, indexAxis: 'y', scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+      });
+
+      charts.company = new Chart(document.getElementById('companyChart'), {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{ data: [], backgroundColor: ['#00d4aa', '#6366f1', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'] }]
+        },
+        options: { ...defaults, cutout: '65%', plugins: { legend: { display: true, position: 'right', labels: { color: '#94a3b8' } } } }
+      });
+
+      charts.salary = new Chart(document.getElementById('salaryChart'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{ data: [], backgroundColor: 'rgba(99, 102, 241, 0.1)', borderColor: '#6366f1', borderWidth: 2 }]
+        },
+        options: { ...defaults, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } } }
+      });
+
+      updateCharts(demoStats);
+    }
+
+    function updateCharts(stats) {
+      const d = stats.charts;
+
+      charts.trend.data.labels = d.applicationTrend.map(x => x.label);
+      charts.trend.data.datasets[0].data = d.applicationTrend.map(x => x.count);
+      charts.trend.update();
+
+      charts.skill.data.labels = d.skillDemand.slice(0, 6).map(x => x.name);
+      charts.skill.data.datasets[0].data = d.skillDemand.slice(0, 6).map(x => x.count);
+      charts.skill.update();
+
+      charts.company.data.labels = d.companyDistribution.map(x => x.name);
+      charts.company.data.datasets[0].data = d.companyDistribution.map(x => x.count);
+      charts.company.update();
+
+      charts.salary.data.labels = d.salaryDistribution.map(x => x.range);
+      charts.salary.data.datasets[0].data = d.salaryDistribution.map(x => x.count);
+      charts.salary.update();
+
+      const k = stats.kpis;
+      document.getElementById('kpiTotal').textContent = k.totalApplied;
+      document.getElementById('kpiViewed').textContent = (k.responseRate * 100).toFixed(0) + '%';
+      document.getElementById('kpiInterview').textContent = Math.round(k.interviewRate * k.totalApplied);
+      document.getElementById('kpiSalary').textContent = (k.averageSalary / 1000).toFixed(0) + 'K';
+    }
+
+    function renderJobs() {
+      const container = document.getElementById('jobList');
+
+      if (applications.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">暂无投递记录</div>';
+        return;
+      }
+
+      container.innerHTML = applications.map(app => `
+        <div class="job-item">
+          <div class="job-info">
+            <h4>${app.jobTitle || app.title || '未知职位'}</h4>
+            <p>${app.company || '未知公司'}</p>
+          </div>
+          <div class="job-salary">${app.salary || '-'}</div>
+          <div><span class="job-status ${app.status || 'pending'}">${getStatusText(app.status)}</span></div>
+          <div class="job-time">${formatTime(app.appliedAt || app.time)}</div>
+        </div>
+      `).join('');
+    }
+
+    function getStatusText(status) {
+      const map = { success: '已投递', viewed: '已查看', interview: '面试中', rejected: '不合适', pending: '待投递', failed: '失败' };
+      return map[status] || status;
+    }
+
+    function formatTime(isoString) {
+      if (!isoString) return '-';
+      const date = new Date(isoString);
+      const now = new Date();
+      const diff = Math.floor((now - date) / 1000);
+      if (diff < 60) return '刚刚';
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+      if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+      return Math.floor(diff / 86400) + '天前';
+    }
+
+    function runDemo() {
+      addLog('info', '启动演示模式...');
+
+      const keyword = document.getElementById('keywordInput').value.trim() || 'Java AI应用开发';
+      const section = document.getElementById('progressSection');
+      section.classList.add('active');
+
+      const demoJobs = [
+        { title: 'Java 高级开发工程师', company: '字节跳动', salary: '35K-60K' },
+        { title: 'Java 开发工程师', company: '阿里巴巴', salary: '30K-50K' },
+        { title: '后端开发工程师', company: '腾讯', salary: '40K-70K' },
+        { title: 'Java 技术专家', company: '美团', salary: '45K-80K' },
+        { title: 'AI 应用开发工程师', company: '快手', salary: '35K-55K' }
+      ];
+
+      let index = 0;
+      const total = demoJobs.length;
+
+      function processNext() {
+        if (index >= total) {
+          document.getElementById('progressBar').style.width = '100%';
+          document.getElementById('progressMeta').textContent = `${total} / ${total}`;
+          document.getElementById('progressTitle').textContent = '投递完成';
+
+          addLog('success', `演示完成：成功投递 ${total} 个职位`);
+
+          demoJobs.forEach(job => {
+            applications.unshift({
+              ...job,
+              status: 'success',
+              appliedAt: new Date().toISOString()
+            });
+          });
+
+          renderJobs();
+
+          setTimeout(() => {
+            section.classList.remove('active');
+            document.getElementById('progressTitle').textContent = '正在投递...';
+          }, 2000);
+          return;
+        }
+
+        const job = demoJobs[index];
+        const percent = (index / total) * 100;
+
+        document.getElementById('progressBar').style.width = percent + '%';
+        document.getElementById('progressMeta').textContent = `${index + 1} / ${total}`;
+        document.getElementById('progressTitle').textContent = `正在投递: ${job.title}`;
+
+        addLog('info', `投递: ${job.title} @ ${job.company}`);
+
+        setTimeout(() => {
+          addLog('success', `✓ 投递成功: ${job.title}`);
+          index++;
+          processNext();
+        }, 800 + Math.random() * 1200);
+      }
+
+      processNext();
+    }
+
+    function init() {
+      initCharts();
+      updateLoginUI(false);
+      updateStartButton();
+
+      addLog('info', '系统就绪');
+      addLog('info', '请先登录 Boss 直聘以开始自动投递');
+      addLog('info', '或点击"演示模式"体验功能');
+
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        document.getElementById('loginModal').classList.add('active');
+      });
+
+      document.getElementById('cancelLoginBtn').addEventListener('click', () => {
+        document.getElementById('loginModal').classList.remove('active');
+      });
+
+      document.getElementById('loginModal').addEventListener('click', (e) => {
+        if (e.target.id === 'loginModal') {
+          document.getElementById('loginModal').classList.remove('active');
+        }
+      });
+
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const phone = document.getElementById('phoneInput').value.trim();
+        const password = document.getElementById('passwordInput').value;
+
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+          addLog('error', '请输入正确的手机号');
+          return;
+        }
+
+        await handleLogin(phone, password);
+        document.getElementById('loginModal').classList.remove('active');
+        document.getElementById('passwordInput').value = '';
+      });
+
+      document.getElementById('startBtn').addEventListener('click', startApply);
+
+      document.getElementById('demoBtn').addEventListener('click', runDemo);
+
+      document.getElementById('clearLogsBtn').addEventListener('click', () => {
+        document.getElementById('logList').innerHTML = '';
+        addLog('info', '日志已清空');
+      });
+
+      connectWebSocket();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
