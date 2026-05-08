@@ -133,7 +133,7 @@ app.post('/api/apply/start', async (req, res) => {
 
     eng.isRunning = true;
 
-    eng.apply(keyword || 'Java AI应用开发', {
+    eng.searchAndApply(keyword || 'Java AI应用开发', {
       city: city || '北京',
       limit: limit || 20
     });
@@ -171,7 +171,7 @@ app.get('/api/jobs/search', async (req, res) => {
     const { keyword, city, page } = req.query;
     const eng = getEngine();
 
-    const jobs = await eng.search(keyword || 'Java AI应用开发', {
+    const jobs = await eng.searchJobs(keyword || 'Java AI应用开发', {
       city: city || '北京',
       page: parseInt(page) || 1
     });
