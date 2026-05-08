@@ -178,6 +178,7 @@ app.get('/api/jobs/search', async (req, res) => {
 
     res.json({ success: true, jobs });
   } catch (error) {
+    console.error('[API] Search error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
