@@ -15,9 +15,60 @@ program
   .version('1.0.0');
 
 program
+  .command('login')
+  .description('登录Boss直聘账号')
+  .option('--headless', '无头模式运行（不显示浏览器）', false)
+  .action(async (options) => {
+    const spinner = ora('正在初始化...').start();
+    
+    try {
+      const engine = new JobHunterEngine({
+        headless: options.headless
+      });
+      
+      const { phone, password } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'phone',
+          message: '请输入手机号:',
+          validate: (input) => /^1[3-9]\d{9}$/.test(input) || '请输入正确的手机号'
+        },
+        {
+          type: 'password',
+          name: 'password',
+          message: '请输入密码:',
+          mask: '*',
+          validate: (input) => input.length >= 6 || '密码长度至少6位'
+        }
+      ]);
+      
+      spinner.text = '正在启动浏览器...';
+      await engine.launchBrowser({ headless: options.headless });
+      
+      spinner.text = '正在登录...';
+      const result = await engine.login({ phone, password });
+      
+      if (result.success) {
+        await engine.saveSession();
+        spinner.succeed(chalk.green('登录成功！'));
+        console.log(chalk.gray('\nCookie 已自动保存，下次可直接使用。'));
+      } else {
+        spinner.fail(chalk.red(`登录失败: ${result.error}`));
+        process.exit(1);
+      }
+      
+      await engine.closeBrowser();
+      
+    } catch (error) {
+      spinner.fail(chalk.red(`错误: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
+program
   .command('search')
   .description('搜索职位')
-  .option('-k, --keyword <keyword>', '搜索关键词', '前端工程师')
+  .option('-k, --keyword <keyword>', '搜索关键词', 'Java AI应用开发')
   .option('-c, --city <city>', '城市', '北京')
   .option('-p, --page <page>', '页码', '1')
   .option('-l, --limit <limit>', '结果数量限制', '30')
@@ -52,11 +103,13 @@ program
 program
   .command('apply')
   .description('批量投递简历')
-  .option('-k, --keyword <keyword>', '搜索关键词', '前端工程师')
+  .option('-k, --keyword <keyword>', '搜索关键词', 'Java AI应用开发')
   .option('-c, --city <city>', '城市', '北京')
   .option('-l, --limit <limit>', '投递数量限制', '20')
   .option('--dry-run', '仅模拟，不实际投递', false)
   .option('--demo', '使用演示数据', false)
+  .option('--auto-login', '自动登录（如Cookie失效）', false)
+  .option('--headless', '无头模式运行（不显示浏览器）', false)
   .action(async (options) => {
     const spinner = ora('正在准备投递...').start();
     
@@ -67,7 +120,35 @@ program
         return;
       }
       
-      const engine = new JobHunterEngine();
+      const engine = new JobHunterEngine({
+        headless: options.headless
+      });
+      
+      const cookieData = await engine.browser?.loadCookies?.() || null;
+      if (!cookieData || options.autoLogin) {
+        if (options.autoLogin) {
+          spinner.text = 'Cookie无效，正在自动登录...';
+          const { phone, password } = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'phone',
+              message: '请输入手机号:',
+              validate: (input) => /^1[3-9]\d{9}$/.test(input) || '请输入正确的手机号'
+            },
+            {
+              type: 'password',
+              name: 'password',
+              message: '请输入密码:',
+              mask: '*'
+            }
+          ]);
+          
+          await engine.launchBrowser({ headless: options.headless });
+          await engine.login({ phone, password });
+          await engine.saveSession();
+          spinner.text = '登录成功，已保存Cookie';
+        }
+      }
       
       engine.on('progress', (data) => {
         if (data.type === 'progress') {
@@ -92,6 +173,8 @@ program
         spinner.fail(chalk.red(`投递失败: ${result.error}`));
         process.exit(1);
       }
+      
+      await engine.closeBrowser();
       
     } catch (error) {
       spinner.fail(chalk.red(`错误: ${error.message}`));

@@ -78,22 +78,31 @@ interface EngineConfig {
   requestThrottle: number;       // 请求节流(ms)
   retryPolicy: RetryPolicy;      // 重试策略
   proxyRotation: ProxyPool;      // 代理池轮换
+  autoLogin: boolean;            // 自动登录
+  headless: boolean;            // 无头模式
 }
 ```
 
-#### 3.2 JobScraper (职位爬虫)
+#### 3.2 BrowserManager (浏览器管理)
+- 使用 Puppeteer 控制无头浏览器
+- 自动登录 Boss 直聘账号
+- 自动保存和加载 Cookie
+- 支持手动登录和自动登录两种模式
+- Cookie 有效期 24 小时自动检测
+
+#### 3.3 JobScraper (职位爬虫)
 - 关键词搜索职位列表
 - 解析职位详情（薪资、技能要求、福利）
 - 过滤重复职位
 - 支持分页爬取
 
-#### 3.3 AutoApplier (自动投递)
+#### 3.4 AutoApplier (自动投递)
 - 模拟用户登录态
 - 构建投递请求
 - 投递频率控制（避免封号）
 - 投递结果记录
 
-#### 3.4 ResumeManager (简历管理)
+#### 3.5 ResumeManager (简历管理)
 - 简历模板管理
 - 简历与职位匹配度分析
 - 一键切换简历
@@ -279,6 +288,7 @@ jobhunter-pro/
 ├── src/
 │   ├── core/
 │   │   ├── engine.js           # 核心引擎
+│   │   ├── browser.js         # 浏览器自动化 (Puppeteer)
 │   │   ├── scraper.js         # 爬虫模块
 │   │   ├── applier.js         # 投递模块
 │   │   └── analytics.js       # 分析模块
@@ -290,8 +300,11 @@ jobhunter-pro/
 │   │   └── app.js             # 前端逻辑
 │   └── data/
 │       └── demo-data.js       # 演示数据
+├── data/
+│   └── cookies.json           # 登录Cookie存储
 ├── package.json
 ├── SPEC.md
+├── USAGE.md                   # 使用指南
 └── README.md
 ```
 
@@ -316,11 +329,17 @@ jobhunter-pro/
 # 安装依赖
 npm install
 
-# 搜索职位
-node src/cli/index.js search -k "前端工程师" -c "北京" -p 20-40
+# 登录 Boss 直聘（自动保存 Cookie）
+npm run login
 
-# 批量投递
-node src/cli/index.js apply -k "前端工程师" --limit 50
+# 搜索职位（默认关键词：Java AI应用开发）
+node src/cli/index.js search -k "Java AI应用开发" -c "北京" -p 20-40
+
+# 批量投递（自动检测并刷新过期 Cookie）
+node src/cli/index.js apply -k "Java AI应用开发" -l 20 --auto-login
+
+# 演示模式（无需登录）
+node src/cli/index.js apply --demo -k "Java AI应用开发"
 
 # 查看统计
 node src/cli/index.js stats --range 7d

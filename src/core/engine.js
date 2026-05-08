@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { JobScraper } from './scraper.js';
 import { AutoApplier } from './applier.js';
 import { DataAnalytics } from './analytics.js';
+import { BrowserManager } from './browser.js';
 import pino from 'pino';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +22,8 @@ class JobHunterEngine extends EventEmitter {
       throttle: config.throttle || 2000,
       applyInterval: config.applyInterval || 30000,
       maxDaily: config.maxDaily || 100,
+      autoLogin: config.autoLogin || false,
+      headless: config.headless !== undefined ? config.headless : true,
       ...config
     };
     
@@ -33,11 +36,58 @@ class JobHunterEngine extends EventEmitter {
       maxDaily: this.config.maxDaily
     });
     this.analytics = new DataAnalytics();
+    this.browser = null;
     
     this.isRunning = false;
     this.currentJob = null;
     
     this.setupEventHandlers();
+  }
+
+  async launchBrowser(options = {}) {
+    if (!this.browser) {
+      this.browser = new BrowserManager({
+        headless: options.headless !== undefined ? options.headless : this.config.headless,
+        ...options
+      });
+    }
+    
+    await this.browser.launch();
+    return this.browser;
+  }
+
+  async login(options = {}) {
+    if (!this.browser) {
+      await this.launchBrowser(options);
+    }
+    
+    const credentials = {
+      phone: options.phone || process.env.BOSS_PHONE,
+      password: options.password || process.env.BOSS_PASSWORD,
+      useCookies: options.useCookies !== false
+    };
+    
+    const result = await this.browser.login(credentials);
+    
+    if (result.success) {
+      const cookies = await this.browser.getCookies();
+      this.setCookies(cookies);
+    }
+    
+    return result;
+  }
+
+  async saveSession() {
+    if (this.browser) {
+      await this.browser.saveCookies();
+    }
+  }
+
+  async closeBrowser() {
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = null;
+    }
   }
 
   setupEventHandlers() {
@@ -193,7 +243,8 @@ class JobHunterEngine extends EventEmitter {
     };
   }
 
-  reset() {
+  async reset() {
+    await this.closeBrowser();
     this.scraper.jobQueue = [];
     this.scraper.appliedJobs.clear();
     this.scraper.failedJobs = [];
