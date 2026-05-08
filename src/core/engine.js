@@ -24,6 +24,8 @@ class JobHunterEngine extends EventEmitter {
       maxDaily: config.maxDaily || 100,
       autoLogin: config.autoLogin || false,
       headless: config.headless !== undefined ? config.headless : true,
+      eventThrottle: config.eventThrottle || 500,
+      batchSize: config.batchSize || 10,
       ...config
     };
     
@@ -40,6 +42,11 @@ class JobHunterEngine extends EventEmitter {
     
     this.isRunning = false;
     this.currentJob = null;
+    
+    this.eventQueue = [];
+    this.lastEventTime = 0;
+    this.eventThrottleTimer = null;
+    this.isProcessingEvents = false;
     
     this.setupEventHandlers();
   }
@@ -91,12 +98,45 @@ class JobHunterEngine extends EventEmitter {
   }
 
   setupEventHandlers() {
-    this.applier.onProgress = (data) => this.emit('progress', data);
-    this.applier.onLog = (data) => this.emit('log', data);
-    this.applier.onStatsUpdate = (data) => this.emit('stats', data);
+    this.applier.onProgress = (data) => this.queueEvent('progress', data);
+    this.applier.onLog = (data) => this.queueEvent('log', data);
+    this.applier.onStatsUpdate = (data) => this.queueEvent('stats', data);
     
     this.on('jobScraped', (job) => this.analytics.recordJobScraped(job));
     this.on('application', (app) => this.analytics.recordApplication(app));
+  }
+
+  queueEvent(type, data) {
+    this.eventQueue.push({ type, data, timestamp: Date.now() });
+    
+    if (!this.isProcessingEvents) {
+      this.processEventQueue();
+    }
+  }
+
+  processEventQueue() {
+    const now = Date.now();
+    const timeSinceLastEvent = now - this.lastEventTime;
+    
+    if (timeSinceLastEvent >= this.config.eventThrottle && this.eventQueue.length > 0) {
+      const event = this.eventQueue.shift();
+      this.emit(event.type, event.data);
+      this.lastEventTime = Date.now();
+    }
+    
+    if (this.eventQueue.length > 0) {
+      setImmediate(() => this.processEventQueue());
+    } else {
+      this.isProcessingEvents = false;
+    }
+  }
+
+  flushEvents() {
+    while (this.eventQueue.length > 0) {
+      const event = this.eventQueue.shift();
+      this.emit(event.type, event.data);
+    }
+    this.isProcessingEvents = false;
   }
 
   setCookies(cookies) {
@@ -130,7 +170,7 @@ class JobHunterEngine extends EventEmitter {
       await this.initialize();
       
       logger.info(`Searching jobs: ${keyword} in ${city}`);
-      this.emit('log', { level: 'info', message: `开始搜索: ${keyword} @ ${city}` });
+      this.queueEvent('log', { level: 'info', message: `开始搜索: ${keyword} @ ${city}` });
       
       const searchResult = await this.scraper.searchJobs(keyword, {
         city,
@@ -141,11 +181,19 @@ class JobHunterEngine extends EventEmitter {
         throw new Error(searchResult.error);
       }
       
-      searchResult.jobs.forEach(job => {
-        this.emit('jobScraped', job);
-      });
+      for (let i = 0; i < searchResult.jobs.length; i += this.config.batchSize) {
+        const batch = searchResult.jobs.slice(i, i + this.config.batchSize);
+        batch.forEach(job => this.emit('jobScraped', job));
+        
+        if (i + this.config.batchSize < searchResult.jobs.length) {
+          this.queueEvent('log', { 
+            level: 'info', 
+            message: `已加载 ${Math.min(i + this.config.batchSize, searchResult.jobs.length)}/${searchResult.jobs.length} 个职位` 
+          });
+        }
+      }
       
-      this.emit('log', { 
+      this.queueEvent('log', { 
         level: 'info', 
         message: `找到 ${searchResult.count} 个职位，开始投递...` 
       });
@@ -156,9 +204,9 @@ class JobHunterEngine extends EventEmitter {
         dryRun
       });
       
-      applyResult.records.forEach(record => {
-        this.emit('application', record);
-      });
+      applyResult.records.forEach(record => this.emit('application', record));
+      
+      this.flushEvents();
       
       this.emit('complete', {
         sessionId: this.sessionId,

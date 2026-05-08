@@ -42,24 +42,33 @@ class JobScraper {
     this.sessionId = uuidv4();
     
     this.jobQueue = [];
-    this.appliedJobs = new Set();
+    this.appliedJobs = new Map();
     this.failedJobs = [];
+    this.responseCache = new Map();
+    this.cacheTTL = 5 * 60 * 1000;
+    
+    this.cachedHeaders = null;
   }
 
   setCookies(cookies) {
     this.cookieManager = cookies;
+    this.cachedHeaders = null;
   }
 
   buildHeaders(additionalHeaders = {}) {
-    const headers = { ...DEFAULT_HEADERS };
-    
-    if (this.cookieManager) {
-      headers['Cookie'] = typeof this.cookieManager === 'string' 
-        ? this.cookieManager 
-        : Object.entries(this.cookieManager).map(([k, v]) => `${k}=${v}`).join('; ');
+    if (!this.cachedHeaders) {
+      const headers = { ...DEFAULT_HEADERS };
+      
+      if (this.cookieManager) {
+        headers['Cookie'] = typeof this.cookieManager === 'string' 
+          ? this.cookieManager 
+          : Object.entries(this.cookieManager).map(([k, v]) => `${k}=${v}`).join('; ');
+      }
+      
+      this.cachedHeaders = headers;
     }
     
-    return { ...headers, ...additionalHeaders };
+    return { ...this.cachedHeaders, ...additionalHeaders };
   }
 
   async delay(ms) {
@@ -67,8 +76,39 @@ class JobScraper {
     return new Promise(resolve => setTimeout(resolve, randomDelay));
   }
 
+  getCacheKey(url, params) {
+    return `${url}?${JSON.stringify(params || {})}`;
+  }
+
+  getFromCache(key) {
+    const cached = this.responseCache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+      return cached.data;
+    }
+    this.responseCache.delete(key);
+    return null;
+  }
+
+  setCache(key, data) {
+    if (this.responseCache.size > 100) {
+      const firstKey = this.responseCache.keys().next().value;
+      this.responseCache.delete(firstKey);
+    }
+    this.responseCache.set(key, { data, timestamp: Date.now() });
+  }
+
   async request(url, options = {}) {
     const maxRetries = options.retries || this.config.maxRetries;
+    const cacheKey = this.getCacheKey(url, options.params);
+    
+    if (!options.skipCache) {
+      const cachedResponse = this.getFromCache(cacheKey);
+      if (cachedResponse) {
+        logger.debug(`Cache hit for: ${url}`);
+        return cachedResponse;
+      }
+    }
+    
     let lastError;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -81,6 +121,10 @@ class JobScraper {
           timeout: this.config.timeout,
           params: options.params
         });
+        
+        if (!options.skipCache) {
+          this.setCache(cacheKey, response);
+        }
         
         return response;
       } catch (error) {
@@ -101,33 +145,44 @@ class JobScraper {
     const jobs = [];
     
     if (source === 'zhipin') {
-      $('.job-card-box').each((i, el) => {
+      const jobCards = $('.job-card-box');
+      const cardCount = jobCards.length;
+      
+      for (let i = 0; i < cardCount; i++) {
+        const el = jobCards[i];
         const $el = $(el);
         
-        const title = $el.find('.job-title').text().trim();
-        const salary = $el.find('.salary').text().trim();
-        const company = $el.find('.company-name').text().trim();
-        const location = $el.find('.job-area').text().trim();
-        const experience = $el.find('.experience').text().trim();
-        const education = $el.find('.education').text().trim();
+        const titleEl = $el.find('.job-title');
+        const salaryEl = $el.find('.salary');
+        const companyEl = $el.find('.company-name');
+        const locationEl = $el.find('.job-area');
+        const experienceEl = $el.find('.experience');
+        const educationEl = $el.find('.education');
+        const tagEls = $el.find('.tag-list .tag');
+        const welfareEls = $el.find('.welfare-tag-list .welfare-tag');
+        const hrInfoEl = $el.find('.hr-info');
+        const postedTimeEl = $el.find('.job-time .time');
+        
+        const title = titleEl.text().trim();
+        const salary = salaryEl.text().trim();
+        const company = companyEl.text().trim();
+        const location = locationEl.text().trim();
+        const experience = experienceEl.text().trim();
+        const education = educationEl.text().trim();
+        const hrName = hrInfoEl.find('.name').text().trim();
+        const hrAvatar = hrInfoEl.find('.avatar').attr('src');
+        const postedTime = postedTimeEl.text().trim();
+        const jobId = $el.attr('data-jobid') || uuidv4();
         
         const tags = [];
-        $el.find('.tag-list .tag').each((i, tag) => {
-          tags.push($(tag).text().trim());
-        });
+        for (let j = 0; j < tagEls.length; j++) {
+          tags.push($(tagEls[j]).text().trim());
+        }
         
         const welfare = [];
-        $el.find('.welfare-tag-list .welfare-tag').each((i, tag) => {
-          welfare.push($(tag).text().trim());
-        });
-        
-        const hrInfo = $el.find('.hr-info');
-        const hrName = hrInfo.find('.name').text().trim();
-        const hrAvatar = hrInfo.find('.avatar').attr('src');
-        
-        const postedTime = $el.find('.job-time .time').text().trim();
-        
-        const jobId = $el.attr('data-jobid') || uuidv4();
+        for (let j = 0; j < welfareEls.length; j++) {
+          welfare.push($(welfareEls[j]).text().trim());
+        }
         
         const salaryMatch = salary.match(/(\d+)[Kk]-(\d+)[Kk]/);
         
@@ -151,7 +206,7 @@ class JobScraper {
           source: 'zhipin',
           url: `${this.config.baseUrl}/job_detail/${jobId}.html`
         });
-      });
+      }
     }
     
     return jobs;
@@ -268,6 +323,7 @@ class JobScraper {
       jobsInQueue: this.jobQueue.length,
       appliedCount: this.appliedJobs.size,
       failedCount: this.failedJobs.length,
+      cacheSize: this.responseCache.size,
       timestamp: new Date().toISOString()
     };
   }

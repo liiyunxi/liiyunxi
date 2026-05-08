@@ -19,6 +19,8 @@ app.use(express.static(path.join(__dirname, 'src', 'web')));
 
 let engine = null;
 const clients = new Set();
+const messageQueue = new Map();
+const BATCH_INTERVAL = 100;
 
 wss.on('connection', (ws) => {
   clients.add(ws);
@@ -37,11 +39,35 @@ wss.on('connection', (ws) => {
 
 function broadcast(data) {
   const message = JSON.stringify(data);
+  const type = data.type || 'unknown';
+  
+  if (!messageQueue.has(type)) {
+    messageQueue.set(type, []);
+  }
+  messageQueue.get(type).push(message);
+  
+  if (messageQueue.size === 1) {
+    setTimeout(flushMessageQueue, BATCH_INTERVAL);
+  }
+}
+
+function flushMessageQueue() {
+  if (messageQueue.size === 0) return;
+  
   clients.forEach((client) => {
     if (client.readyState === 1) {
-      client.send(message);
+      messageQueue.forEach((messages, type) => {
+        const latestMessage = messages[messages.length - 1];
+        try {
+          client.send(latestMessage);
+        } catch (error) {
+          console.error('[WebSocket] Send error:', error);
+        }
+      });
     }
   });
+  
+  messageQueue.clear();
 }
 
 function getEngine() {
