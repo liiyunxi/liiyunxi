@@ -190,16 +190,16 @@ app.get('/api/jobs/search', async (req, res) => {
     const { keyword, city, page } = req.query;
     const eng = getEngine();
 
-    const jobs = await eng.searchJobs(keyword || 'Java AI应用开发', {
+    const result = await eng.searchJobs(keyword || 'Java AI应用开发', {
       city: city || '北京',
       page: parseInt(page) || 1
     });
 
-    if (!jobs || jobs.jobs === null) {
-      return res.status(500).json({ success: false, error: '搜索失败，请稍后重试' });
+    if (!result || !result.success) {
+      return res.status(500).json({ success: false, error: result?.error || '搜索失败，请稍后重试' });
     }
 
-    res.json({ success: true, jobs: jobs.jobs });
+    res.json({ success: true, jobs: result.jobs });
   } catch (error) {
     console.error('[API] Search error:', error);
     res.status(500).json({ success: false, error: error.message });
