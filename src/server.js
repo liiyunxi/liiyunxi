@@ -121,6 +121,8 @@ app.post('/api/apply/start', async (req, res) => {
       return res.status(400).json({ success: false, error: '投递任务正在进行中' });
     }
 
+    const validatedLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
+
     const cookieData = await eng.browser?.loadCookies?.() || null;
 
     if (!cookieData) {
@@ -133,9 +135,9 @@ app.post('/api/apply/start', async (req, res) => {
 
     eng.isRunning = true;
 
-    eng.apply(keyword || 'Java AI应用开发', {
+    eng.searchAndApply(keyword || 'Java AI应用开发', {
       city: city || '北京',
-      limit: limit || 20
+      limit: validatedLimit
     });
 
     res.json({ success: true, message: '投递任务已开始' });
@@ -158,10 +160,27 @@ app.post('/api/apply/stop', async (req, res) => {
 });
 
 app.get('/api/apply/status', (req, res) => {
+  const defaultStats = {
+    totalApplied: 0,
+    successCount: 0,
+    failedCount: 0,
+    responseRate: 0,
+    interviewRate: 0,
+    averageSalary: 0
+  };
+
+  let stats = defaultStats;
+  if (engine?.analytics?.getStats) {
+    const engineStats = engine.analytics.getStats();
+    if (engineStats && typeof engineStats === 'object') {
+      stats = { ...defaultStats, ...engineStats };
+    }
+  }
+
   const status = {
     running: engine?.isRunning || false,
     currentJob: engine?.currentJob || null,
-    stats: engine?.analytics?.getStats?.() || null
+    stats
   };
   res.json(status);
 });
@@ -171,13 +190,18 @@ app.get('/api/jobs/search', async (req, res) => {
     const { keyword, city, page } = req.query;
     const eng = getEngine();
 
-    const jobs = await eng.search(keyword || 'Java AI应用开发', {
+    const result = await eng.searchJobs(keyword || 'Java AI应用开发', {
       city: city || '北京',
       page: parseInt(page) || 1
     });
 
-    res.json({ success: true, jobs });
+    if (!result || !result.success) {
+      return res.status(500).json({ success: false, error: result?.error || '搜索失败，请稍后重试' });
+    }
+
+    res.json({ success: true, jobs: result.jobs });
   } catch (error) {
+    console.error('[API] Search error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
