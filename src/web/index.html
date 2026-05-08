@@ -278,6 +278,8 @@
       background: var(--gradient-primary);
       border-radius: 4px;
       transition: width 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .progress-bar::after {
@@ -710,6 +712,7 @@
     let isRunning = false;
     let applications = [];
     let charts = {};
+    let wsReconnectScheduled = false;
 
     const demoStats = {
       kpis: {
@@ -772,7 +775,14 @@
         console.log('[WS] Disconnected');
         document.getElementById('wsStatus').className = 'status-dot disconnected';
         document.getElementById('loginStatusText').textContent = '未连接';
-        setTimeout(connectWebSocket, 3000);
+        ws = null;
+        if (!wsReconnectScheduled) {
+          wsReconnectScheduled = true;
+          setTimeout(() => {
+            wsReconnectScheduled = false;
+            connectWebSocket();
+          }, 3000);
+        }
       };
 
       ws.onerror = (error) => {
