@@ -137,6 +137,104 @@ jobhunter-pro/
 - Cookie 有效期为 24 小时，过期后需重新登录
 - 本工具仅供学习交流使用
 
+## 🐳 Docker 部署（生产环境推荐）
+
+### 前置要求
+
+- Docker 20.10+
+- Docker Compose 2.0+
+
+### 快速部署
+
+```bash
+# 1. 克隆项目
+git clone <your-repo-url>
+cd jobhunter-pro
+
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，配置您的 Boss 直聘账号密码
+
+# 3. 执行部署
+chmod +x deploy.sh
+./deploy.sh deploy
+```
+
+### 部署脚本命令
+
+```bash
+./deploy.sh deploy    # 完整部署（默认）
+./deploy.sh start     # 启动服务
+./deploy.sh stop      # 停止服务
+./deploy.sh restart   # 重启服务
+./deploy.sh logs      # 查看日志
+./deploy.sh status    # 查看状态
+./deploy.sh rebuild   # 重新构建
+./deploy.sh clean     # 清理数据
+```
+
+### 访问地址
+
+- **Web UI**: http://localhost (或您的域名)
+- **API**: http://localhost/api
+- **WebSocket**: ws://localhost/ws
+- **健康检查**: http://localhost:3000/health
+
+### HTTPS 配置（生产环境）
+
+1. 申请 SSL 证书
+```bash
+mkdir -p nginx/ssl
+# 将证书文件放入 nginx/ssl/ 目录
+# cert.pem (证书)
+# key.pem (私钥)
+```
+
+2. 修改 `docker-compose.yml`，取消注释 443 端口映射
+
+3. 重启服务
+```bash
+./deploy.sh restart
+```
+
+### 目录说明
+
+```bash
+├── data/          # 应用数据存储
+├── logs/          # 日志文件
+├── sessions/      # 会话数据
+├── cookies/       # 登录 Cookie
+└── nginx/ssl/     # SSL 证书（需手动创建）
+```
+
+### 性能优化配置
+
+编辑 `.env` 文件调整以下参数：
+
+```bash
+# 性能调优
+THROTTLE=2000                    # 请求间隔（毫秒）
+MAX_RETRIES=3                    # 最大重试次数
+MAX_DAILY_APPLICATIONS=100        # 每日投递上限
+
+# 浏览器优化
+HEADLESS=true                    # 无头模式（生产环境建议开启）
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+```
+
+### 监控和日志
+
+```bash
+# 实时查看日志
+docker-compose logs -f jobhunter
+
+# 查看资源使用
+docker stats jobhunter-pro
+
+# 健康检查
+curl http://localhost:3000/health
+```
+
 ## 📝 License
 
 MIT License
