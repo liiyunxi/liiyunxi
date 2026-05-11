@@ -581,10 +581,35 @@
             <button class="btn btn-primary" id="searchJobsBtn">
               <span>🔍</span>搜索职位
             </button>
+            <button class="btn btn-secondary" id="openAllBtn" disabled>
+              <span>🌐</span>一键多开 (0)
+            </button>
             <button class="btn btn-secondary" id="demoBtn">
               <span>📊</span>演示模式
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard" id="searchResultsSection" style="display: none;">
+    <div class="container">
+      <div class="section-header" style="margin-bottom: 20px;">
+        <span class="chart-title">🔍 搜索结果</span>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="selectAllJobs" style="width: 18px; height: 18px;">
+            <span style="font-size: 14px;">全选</span>
+          </label>
+          <span style="font-size: 14px; color: var(--text-secondary);">
+            已选择 <span id="selectedCount">0</span> 个职位
+          </span>
+        </div>
+      </div>
+      <div class="job-list" id="searchResultsList">
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+          搜索职位后显示在这里
         </div>
       </div>
     </div>
@@ -711,6 +736,8 @@
     let isLoggedIn = false;
     let isRunning = false;
     let applications = [];
+    let searchResults = [];
+    let selectedJobs = new Set();
     let charts = {};
     let wsReconnectScheduled = false;
 
@@ -956,21 +983,214 @@
       const container = document.getElementById('logList');
       const entry = document.createElement('div');
       entry.className = `log-entry ${level}`;
-
-      const time = new Date().toLocaleTimeString('zh-CN', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
-
-      entry.innerHTML = `
-        <span class="log-time">${time}</span>
-        <span class="log-message">${message}</span>
-      `;
-
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
       container.insertBefore(entry, container.firstChild);
 
-      while (container.children.length > 100) {
+      if (container.children.length > 100) {
         container.removeChild(container.lastChild);
       }
+    }
+
+    async function searchJobs() {
+      const keyword = document.getElementById('keywordInput').value.trim();
+      const city = document.getElementById('cityInput').value.trim();
+
+      if (!keyword) {
+        addLog('warning', '请输入职位关键词');
+        return;
+      }
+
+      addLog('info', `正在搜索: ${keyword} @ ${city}`);
+      const searchBtn = document.getElementById('searchJobsBtn');
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<span>⏳</span>搜索中...';
+
+      try {
+        const response = await fetch(`${API_BASE}/api/jobs/search?keyword=${encodeURIComponent(keyword)}&city=${encodeURIComponent(city)}`);
+
+        if (!response.ok) {
+          throw new Error('搜索请求失败');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.jobs && data.jobs.length > 0) {
+          searchResults = data.jobs;
+          selectedJobs.clear();
+          renderSearchResults();
+          document.getElementById('searchResultsSection').style.display = 'block';
+          document.getElementById('openAllBtn').disabled = false;
+          updateSelectedCount();
+          addLog('success', `找到 ${searchResults.length} 个职位`);
+        } else {
+          searchResults = [];
+          renderSearchResults();
+          addLog('warning', '未找到相关职位');
+        }
+      } catch (error) {
+        addLog('error', `搜索失败: ${error.message}`);
+        console.error('Search error:', error);
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = '<span>🔍</span>搜索职位';
+      }
+    }
+
+    function renderSearchResults() {
+      const container = document.getElementById('searchResultsList');
+
+      if (searchResults.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">暂无搜索结果</div>';
+        return;
+      }
+
+      container.innerHTML = searchResults.map((job, index) => `
+        <div class="search-result-item" data-index="${index}" style="
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          gap: 16px;
+          align-items: flex-start;
+        ">
+          <input type="checkbox" class="job-checkbox" data-index="${index}" style="
+            width: 20px;
+            height: 20px;
+            margin-top: 4px;
+            cursor: pointer;
+          " />
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">${job.title}</h3>
+              <span style="color: var(--accent-primary); font-weight: 600; font-size: 15px;">${job.salary?.raw || '薪资面议'}</span>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">
+              ${job.company} · ${job.location}
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${(job.tags || []).slice(0, 4).map(tag => `
+                <span style="
+                  background: rgba(0, 212, 170, 0.1);
+                  color: var(--accent-primary);
+                  padding: 4px 12px;
+                  border-radius: 20px;
+                  font-size: 12px;
+                ">${tag}</span>
+              `).join('')}
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 12px;">
+              <button class="open-single-btn" data-index="${index}" style="
+                background: var(--bg-secondary);
+                color: var(--text-primary);
+                border: 1px solid var(--border);
+                padding: 6px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                transition: all 0.2s;
+              " onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                🌐 打开
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.job-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          toggleJobSelection(index, e.target.checked);
+        });
+      });
+
+      document.querySelectorAll('.open-single-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const index = parseInt(btn.dataset.index);
+          openSingleJob(index);
+        });
+      });
+
+      document.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if (e.target.type !== 'checkbox') {
+            const checkbox = item.querySelector('.job-checkbox');
+            checkbox.checked = !checkbox.checked;
+            const index = parseInt(item.dataset.index);
+            toggleJobSelection(index, checkbox.checked);
+          }
+        });
+      });
+    }
+
+    function toggleJobSelection(index, selected) {
+      if (selected) {
+        selectedJobs.add(index);
+      } else {
+        selectedJobs.delete(index);
+      }
+      updateSelectedCount();
+      updateOpenAllButton();
+    }
+
+    function selectAllJobs() {
+      searchResults.forEach((_, index) => selectedJobs.add(index));
+      document.querySelectorAll('.job-checkbox').forEach(cb => cb.checked = true);
+      updateSelectedCount();
+      updateOpenAllButton();
+    }
+
+    function deselectAllJobs() {
+      selectedJobs.clear();
+      document.querySelectorAll('.job-checkbox').forEach(cb => cb.checked = false);
+      updateSelectedCount();
+      updateOpenAllButton();
+    }
+
+    function updateSelectedCount() {
+      document.getElementById('selectedCount').textContent = selectedJobs.size;
+    }
+
+    function updateOpenAllButton() {
+      const btn = document.getElementById('openAllBtn');
+      btn.innerHTML = `<span>🌐</span>一键多开 (${selectedJobs.size})`;
+      btn.disabled = selectedJobs.size === 0;
+    }
+
+    function openSingleJob(index) {
+      const job = searchResults[index];
+      if (job && job.url) {
+        window.open(job.url, '_blank');
+        addLog('info', `打开职位: ${job.title}`);
+      }
+    }
+
+    function openSelectedJobs() {
+      if (selectedJobs.size === 0) {
+        addLog('warning', '请先选择要打开的职位');
+        return;
+      }
+
+      addLog('info', `正在打开 ${selectedJobs.size} 个职位...`);
+
+      const jobsToOpen = Array.from(selectedJobs).map(index => searchResults[index]);
+
+      jobsToOpen.forEach((job, index) => {
+        setTimeout(() => {
+          if (job.url) {
+            window.open(job.url, '_blank');
+            addLog('success', `✓ 已打开: ${job.title}`);
+          }
+        }, index * 300);
+      });
+
+      setTimeout(() => {
+        addLog('info', `已完成打开 ${jobsToOpen.length} 个职位页面`);
+      }, jobsToOpen.length * 300 + 500);
     }
 
     function initCharts() {
@@ -1201,9 +1421,37 @@
 
       document.getElementById('demoBtn').addEventListener('click', runDemo);
 
+      document.getElementById('searchJobsBtn').addEventListener('click', searchJobs);
+
+      document.getElementById('openAllBtn').addEventListener('click', openSelectedJobs);
+
+      document.getElementById('selectAllJobs').addEventListener('change', (e) => {
+        if (e.target.checked) {
+          selectAllJobs();
+        } else {
+          deselectAllJobs();
+        }
+      });
+
       document.getElementById('clearLogsBtn').addEventListener('click', () => {
         document.getElementById('logList').innerHTML = '';
         addLog('info', '日志已清空');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key === 'o' || e.key === 'O') {
+            e.preventDefault();
+            openSelectedJobs();
+          }
+          if (e.key === 'a' || e.key === 'A') {
+            if (document.getElementById('searchResultsSection').style.display !== 'none') {
+              e.preventDefault();
+              selectAllJobs();
+              document.getElementById('selectAllJobs').checked = true;
+            }
+          }
+        }
       });
 
       connectWebSocket();
